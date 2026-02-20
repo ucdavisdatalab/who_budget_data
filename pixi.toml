@@ -1,0 +1,13 @@
+[workspace]
+authors = ["joey suen <joeysuen66@gmail.com>", "Nick Ulle <nick.ulle@gmail.com"]
+channels = ["conda-forge"]
+name = "2026_peritz_who-pdfs"
+platforms = ["osx-arm64", "linux-64", "win-64", "osx-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = ">=3.14.3,<3.15"
+jupyter = ">=1.1.1,<2"
+pandas = ">=3.0.1,<4"
