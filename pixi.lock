@@ -114,6 +114,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/parso-0.8.6-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pexpect-4.9.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.9.2-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/polars-1.38.1-pyh6a1acc5_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/polars-runtime-32-1.38.1-py310hffdcd12_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/prometheus_client-0.24.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/prompt-toolkit-3.0.52-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/prompt_toolkit-3.0.52-hd8ed1ab_0.conda
@@ -270,6 +272,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/parso-0.8.6-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pexpect-4.9.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.9.2-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/polars-1.38.1-pyh6a1acc5_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-64/polars-runtime-32-1.38.1-py310had17480_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/prometheus_client-0.24.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/prompt-toolkit-3.0.52-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/prompt_toolkit-3.0.52-hd8ed1ab_0.conda
@@ -429,6 +433,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/parso-0.8.6-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pexpect-4.9.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.9.2-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/polars-1.38.1-pyh6a1acc5_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/polars-runtime-32-1.38.1-py310haaaf75b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/prometheus_client-0.24.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/prompt-toolkit-3.0.52-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/prompt_toolkit-3.0.52-hd8ed1ab_0.conda
@@ -585,6 +591,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pandocfilters-1.5.0-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/parso-0.8.6-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.9.2-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/polars-1.38.1-pyh6a1acc5_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/polars-runtime-32-1.38.1-py310hca7251b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/prometheus_client-0.24.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/prompt-toolkit-3.0.52-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/prompt_toolkit-3.0.52-hd8ed1ab_0.conda
@@ -3239,6 +3247,95 @@ packages:
   license_family: MIT
   size: 25643
   timestamp: 1771233827084
+- conda: https://conda.anaconda.org/conda-forge/noarch/polars-1.38.1-pyh6a1acc5_0.conda
+  sha256: 66b1fcb302268a21a0dc818cf550d615b6e93e3d693bec612c7948231bb30489
+  md5: b20de145c676cbae6138ac478cdb137b
+  depends:
+  - polars-runtime-32 ==1.38.1
+  - python >=3.10
+  - python
+  constrains:
+  - numpy >=1.16.0
+  - pyarrow >=7.0.0
+  - fastexcel >=0.9
+  - openpyxl >=3.0.0
+  - xlsx2csv >=0.8.0
+  - connectorx >=0.3.2
+  - deltalake >=1.0.0
+  - pyiceberg >=0.7.1
+  - altair >=5.4.0
+  - great_tables >=0.8.0
+  - polars-runtime-32 ==1.38.1
+  - polars-runtime-64 ==1.38.1
+  - polars-runtime-compat ==1.38.1
+  license: MIT
+  license_family: MIT
+  size: 525771
+  timestamp: 1770417396090
+- conda: https://conda.anaconda.org/conda-forge/linux-64/polars-runtime-32-1.38.1-py310hffdcd12_0.conda
+  noarch: python
+  sha256: cf48147429a4f993b0fb1d2376d238d62843341e3ad0a2b1a058fc6130efd16d
+  md5: b659a59ec7b67623dcaec02388e06fb9
+  depends:
+  - python
+  - libgcc >=14
+  - __glibc >=2.17,<3.0.a0
+  - libstdcxx >=14
+  - _python_abi3_support 1.*
+  - cpython >=3.10
+  constrains:
+  - __glibc >=2.17
+  license: MIT
+  license_family: MIT
+  size: 35483982
+  timestamp: 1770417396088
+- conda: https://conda.anaconda.org/conda-forge/osx-64/polars-runtime-32-1.38.1-py310had17480_0.conda
+  noarch: python
+  sha256: 9d7f6dac11745003583e856d93680a29b1da5932e105ff1138834f2ff06282c5
+  md5: b6c51fadf12a1ca2835f131982b5db14
+  depends:
+  - python
+  - __osx >=10.13
+  - libcxx >=19
+  - _python_abi3_support 1.*
+  - cpython >=3.10
+  constrains:
+  - __osx >=10.13
+  license: MIT
+  license_family: MIT
+  size: 35835548
+  timestamp: 1770417330239
+- conda: https://conda.anaconda.org/conda-forge/osx-arm64/polars-runtime-32-1.38.1-py310haaaf75b_0.conda
+  noarch: python
+  sha256: abeab194bdcb4b947bed8926d07b880af2fbd294d241508d28d0b410b2efa19d
+  md5: 91967c125f9649be40a973c1c4b1888c
+  depends:
+  - python
+  - libcxx >=19
+  - __osx >=11.0
+  - _python_abi3_support 1.*
+  - cpython >=3.10
+  constrains:
+  - __osx >=11.0
+  license: MIT
+  license_family: MIT
+  size: 32501552
+  timestamp: 1770417369386
+- conda: https://conda.anaconda.org/conda-forge/win-64/polars-runtime-32-1.38.1-py310hca7251b_0.conda
+  noarch: python
+  sha256: e3d66b5053af2fa908272ed9f14d7f0add401391ff4fc7bd6fa9854ae9068e21
+  md5: b5cb5bc8ed2f9df48909637e7fca0aba
+  depends:
+  - python
+  - vc >=14.3,<15
+  - vc14_runtime >=14.44.35208
+  - ucrt >=10.0.20348.0
+  - _python_abi3_support 1.*
+  - cpython >=3.10
+  license: MIT
+  license_family: MIT
+  size: 39451459
+  timestamp: 1770417363447
 - conda: https://conda.anaconda.org/conda-forge/noarch/prometheus_client-0.24.1-pyhd8ed1ab_0.conda
   sha256: 75b2589159d04b3fb92db16d9970b396b9124652c784ab05b66f584edc97f283
   md5: 7526d20621b53440b0aae45d4797847e
