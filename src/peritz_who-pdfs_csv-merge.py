@@ -62,10 +62,15 @@ def fuzzy_rename(df, col_names, threshold=80):
     return df.rename(columns=rename_map)
 
 # GROUP 1 --------------------------------------
-g1_cols = ["Members", "Credits (Start of Year)", "Current Year Assessment",
-                            "Total Amount Outstanding (Start of Year)", "Receipts/Credits Given During Current Year",
-                            "Balances Due 1987 - (Second Previous Year)", "Balances Due Previous Year",
-                            "Balances Due Current Year", "Balances Due Total"]
+g1_cols = ["members", 
+           "credits (start of year)", 
+           "current year assessment",
+           "total amount outstanding (start of year)",
+           "receipts/credits given during current year",
+           "balances due from 1987 to second previous year", 
+           "balances due previous year",
+           "balances due current year",
+           "balances due total"]
 
 for filename in groups["group1"]:
 
@@ -86,6 +91,67 @@ for filename in groups["group1"]:
 
 # concatenate group 1
 g1_concat = pd.concat([df[f] for f in groups["group1"]], ignore_index=True)
+
+# GROUP 2 --------------------------------------
+
+# upon first inspection, these tables appear to be the same,
+# except A63_33-en.pdf contains additional information
+
+# standarize column names (to allow for checking for overlap)
+df["A63_33-en.pdf"] = df["A63_33-en.pdf"].rename(columns = {
+    "balance for prior years as on 31 december 2007": "balance for prior years (31 dec 2007)",
+    "rescheduled assessment as on 31 december 2007": "rescheduled assessment (31 dec 2007)",
+    "collected or adjusted during current biennium": "collected/adjusted during biennium",
+    "total outstanding (a) + (b)": "total outstanding (a+b)"
+})
+
+df1 = df["A62_30-en.pdf"]
+df2 = df["A63_33-en.pdf"] # larger table
+
+# check if df1 rows exist in df2
+merged = df1.merge(df2, on=list(df1.columns), how="left", indicator=True)
+# (COMMENTED OUT): print(merged["_merge"].value_counts())
+    # there are 90 "left_only" values, indicating df1 and df2 have different values
+
+'''
+upon inspection of the original PDFs, A63_33-en.pdf contains information up to
+2009, while A62_30-en.pdf contains information up to 2008 - thus, the following columns
+differ: 'collected or adjusted during current biennum', 'balance outstanding (b))',
+and 'total outstanding (a+b)'
+
+thus, I will just add a year to these columns and merge
+'''
+
+# adding year to differentiate columns
+df1.columns = [col + " as on 2008" if col in 
+                               ["collected/adjusted during biennium",
+                                "balance outstanding (a)",
+                                "balance outstanding (b)",
+                                "total outstanding (a+b)"]
+                                else col for col in df1.columns]
+df2.columns = [col + " as on 2009" if col in 
+                               ["collected/adjusted during biennium",
+                                "balance outstanding (a)",
+                                "balance outstanding (b)",
+                                "total outstanding (a+b)"]
+                                else col for col in df2.columns]
+
+shared_cols = list(set(df1.columns) & set(df2.columns))
+g2_merged = pd.merge(df1, df2, on=shared_cols, how='outer')
+
+for col in shared_cols:
+    if col != "members and associate members":
+        mismatches = df1.merge(df2, on="members and associate members")[
+            [f"{col}_x", f"{col}_y"]
+        ]
+        mismatches = mismatches[mismatches[f"{col}_x"] != mismatches[f"{col}_y"]]
+        if len(mismatches) > 0:
+            print(f"\n{col}:")
+            print(mismatches.head())
+            
+# (TO-DO): two mismatches, Kyrgyzstan and Panama, are disrupting the merging
+    # Kyrgystan: differs on rescheduled assessment (31 dec 2007)
+    # Panama: differs on balance prior yeras (31 dec 2007)
 
 # GROUP 3 --------------------------------------
 g3_cols = ["contributor", 
@@ -124,9 +190,11 @@ g3_concat = pd.concat([df[f] for f in groups["group3"]], ignore_index=True)
 file_path = BASE_DIR.parent / "data" / "group1.parquet"
 g1_concat.to_parquet(file_path)
 
-#file_path = BASE_DIR.parent / "data" / "group3.parquet"
-#g3_concat.to_parquet(file_path)
+file_path = BASE_DIR.parent / "data" / "group3.parquet"
+g3_concat.to_parquet(file_path)
 
 # check the parquet file:
-check = pd.read_parquet(file_path)
-print(check)
+check = pd.read_parquet(BASE_DIR.parent / "data" / "group1.parquet")
+
+
+# TO-DO: UPLOAD PARQUET FILES TO GOOGLE DRIVE
