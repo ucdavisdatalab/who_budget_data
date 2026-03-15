@@ -9,8 +9,7 @@ from IPython import display
 from rapidfuzz import process # for column name standardization
 
 # import data
-BASE_DIR = Path(__file__).resolve().parent
-file_path = BASE_DIR.parent / "data" / "final csvs.xlsx"
+file_path = "data" / "final csvs.xlsx"
 df = pd.read_excel(file_path, sheet_name=None) # note: df is a dictionary
 
 # pre-processing
@@ -187,14 +186,14 @@ g3_concat = pd.concat([df[f] for f in groups["group3"]], ignore_index=True)
 # MERGING / OUTPUT -----------------------------
 
 # (TO DO: MAKE LOOP FOR ALL GROUPS)
-file_path = BASE_DIR.parent / "data" / "group1.parquet"
+file_path = "data" / "processed" / "group1.parquet"
 g1_concat.to_parquet(file_path)
 
-file_path = BASE_DIR.parent / "data" / "group3.parquet"
+file_path = "data" / "processed" "group3.parquet"
 g3_concat.to_parquet(file_path)
 
 # check the parquet file:
-check = pd.read_parquet(BASE_DIR.parent / "data" / "group1.parquet")
+# check = pd.read_parquet(file_path)
 
 
 # TO-DO: UPLOAD PARQUET FILES TO GOOGLE DRIVE
