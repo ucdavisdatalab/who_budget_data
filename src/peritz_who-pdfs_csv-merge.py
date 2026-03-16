@@ -9,7 +9,7 @@ from IPython import display
 from rapidfuzz import process # for column name standardization
 
 # import data
-file_path = "data" / "final csvs.xlsx"
+file_path = "data/raw/2026-03-15_extracted_data.xlsx"
 df = pd.read_excel(file_path, sheet_name=None) # note: df is a dictionary
 
 # pre-processing
@@ -22,8 +22,10 @@ for sheet_name, table in df.items():
     name = re.search(r"A.*?(?=\.pdf)", sheet_name, re.IGNORECASE)
     table["File"] = name.group()
 
-    # standardize capitalization of column names
-    df[sheet_name].columns = df[sheet_name].columns.str.lower().str.strip()
+    # standardize column names
+    df[sheet_name].columns = df[sheet_name].columns.str.lower().str.strip() # capitalization
+    df[sheet_name].columns = [re.sub(r'[^\w]', '_', col) for col in df[sheet_name].columns] # replace non-alphanumerics with underscore
+    df[sheet_name].columns = [re.sub(r'_+', '_', col).strip('_') for col in df[sheet_name].columns] # remove consecutive underscores
 
 # grouping similarly formatted PDFs
 groups = {
@@ -62,26 +64,26 @@ def fuzzy_rename(df, col_names, threshold=80):
 
 # GROUP 1 --------------------------------------
 g1_cols = ["members", 
-           "credits (start of year)", 
-           "current year assessment",
-           "total amount outstanding (start of year)",
-           "receipts/credits given during current year",
-           "balances due from 1987 to second previous year", 
-           "balances due previous year",
-           "balances due current year",
-           "balances due total"]
+           "credits_start_of_year", 
+           "current_year_assessment",
+           "total_amount_outstanding_start_of_year",
+           "receipts_credits_given_during_current_year",
+           "balances_due_from_1987_to_second_previous_year", 
+           "balances_due_previous_year",
+           "balances_due_current_year",
+           "balances_due_total"]
 
-for filename in groups["group1"]:
+for sheet in groups["group1"]:
 
     # key all dataframes in group 1
-    table = df[filename]
+    table = df[sheet]
 
-    # append "Year" column
+    # append "year" column
     assessment_cols = [col for col in table.columns if "assessment" in col.lower()]
     if assessment_cols:
         assessment_col = assessment_cols[0]
         year = re.search(r"\d{4}", assessment_col).group()
-        table["Year"] = int(year)
+        table["year"] = int(year)
     
     # generalizing table column names
     cols = list(table.columns)
@@ -98,10 +100,9 @@ g1_concat = pd.concat([df[f] for f in groups["group1"]], ignore_index=True)
 
 # standarize column names (to allow for checking for overlap)
 df["A63_33-en.pdf"] = df["A63_33-en.pdf"].rename(columns = {
-    "balance for prior years as on 31 december 2007": "balance for prior years (31 dec 2007)",
-    "rescheduled assessment as on 31 december 2007": "rescheduled assessment (31 dec 2007)",
-    "collected or adjusted during current biennium": "collected/adjusted during biennium",
-    "total outstanding (a) + (b)": "total outstanding (a+b)"
+    "balance_for_prior_years_as_on_31_december_2007": "balance_for_prior_years_31_dec_2007",
+    "rescheduled_assessment_as_on_31_december_2007": "rescheduled_assessment_31_dec_2007",
+    "collected_or_adjusted_during_current_biennium": "collected_adjusted_during_biennium",
 })
 
 df1 = df["A62_30-en.pdf"]
@@ -112,35 +113,35 @@ merged = df1.merge(df2, on=list(df1.columns), how="left", indicator=True)
 # (COMMENTED OUT): print(merged["_merge"].value_counts())
     # there are 90 "left_only" values, indicating df1 and df2 have different values
 
-'''
-upon inspection of the original PDFs, A63_33-en.pdf contains information up to
-2009, while A62_30-en.pdf contains information up to 2008 - thus, the following columns
-differ: 'collected or adjusted during current biennum', 'balance outstanding (b))',
-and 'total outstanding (a+b)'
 
-thus, I will just add a year to these columns and merge
-'''
+# upon inspection of the original PDFs, A63_33-en.pdf contains information up to
+# 2009, while A62_30-en.pdf contains information up to 2008 - thus, the following columns
+# differ: 'collected or adjusted during current biennum', 'balance outstanding (b))',
+# and 'total outstanding (a+b)'
+
+# thus, I will just add a year to these columns and merge
+
 
 # adding year to differentiate columns
-df1.columns = [col + " as on 2008" if col in 
-                               ["collected/adjusted during biennium",
-                                "balance outstanding (a)",
-                                "balance outstanding (b)",
-                                "total outstanding (a+b)"]
+df1.columns = [col + "_as_on_2008" if col in 
+                               ["collected_adjusted_during_biennium",
+                                "balance_outstanding_a",
+                                "balance_outstanding_b",
+                                "total_outstanding_a_b"]
                                 else col for col in df1.columns]
-df2.columns = [col + " as on 2009" if col in 
-                               ["collected/adjusted during biennium",
-                                "balance outstanding (a)",
-                                "balance outstanding (b)",
-                                "total outstanding (a+b)"]
+df2.columns = [col + "_as_on_2009" if col in 
+                               ["collected_adjusted_during_biennium",
+                                "balance_outstanding_a",
+                                "balance_outstanding_b",
+                                "total_outstanding_a_b"]
                                 else col for col in df2.columns]
 
 shared_cols = list(set(df1.columns) & set(df2.columns))
 g2_merged = pd.merge(df1, df2, on=shared_cols, how='outer')
 
 for col in shared_cols:
-    if col != "members and associate members":
-        mismatches = df1.merge(df2, on="members and associate members")[
+    if col != "members_and_associate_members":
+        mismatches = df1.merge(df2, on="members_and_associate_members")[
             [f"{col}_x", f"{col}_y"]
         ]
         mismatches = mismatches[mismatches[f"{col}_x"] != mismatches[f"{col}_y"]]
@@ -150,23 +151,32 @@ for col in shared_cols:
             
 # (TO-DO): two mismatches, Kyrgyzstan and Panama, are disrupting the merging
     # Kyrgystan: differs on rescheduled assessment (31 dec 2007)
-    # Panama: differs on balance prior yeras (31 dec 2007)
+        # reschedule assessment from a63 = balance for prior yeras 31 dec 2007 from a62
+        # gonna trust the updated one
+    # Panama: differs on balance prior years (31 dec 2007)
+        # this one is a bit more complicated, because the other numbers for collected/adjusted
+        # during biennium and balance outstanding actually match up
+        # I think I'm just gonna throw this row out
+
+g2_merged = g2_merged[g2_merged["members_and_associate_members"] != "panama"]
+
 
 # GROUP 3 --------------------------------------
 g3_cols = ["contributor", 
-           "core voluntary contributions account", 
-           "voluntary contributions - core", 
-           "voluntary contributions - specified", 
-           "stop tb partnership",
-           "roll back malaria partnership",
-           "special programmes and collaborative arrangements", 
-           "outbreak and crisis response",  
-           "contingency fund for emergencies", 
-           "special programme of research, development and research training in human reproduction", 
-           "special programme for research and training in tropical diseases", 
-           "grand total",
-           "water supply and sanitation collaborative council",
+           "core_voluntary_contributions_account", 
+           "voluntary_contributions_core", 
+           "voluntary_contributions_specified", 
+           "stop_tb_partnership",
+           "roll_back_malaria_partnership",
+           "special_programmes_and_collaborative_arrangements", 
+           "outbreak_and_crisis_response",  
+           "contingency_fund_for_emergencies", 
+           "special_programme_on_research_development_and_training_in_human_reproduction", 
+           "special_programme_for_research_and_training_in_tropical_diseases", 
+           "grand_total",
+           "water_supply_and_sanitation_collaborative_council",
            "file"]
+
 
 # standardize column names
 for filename in groups["group3"]:
@@ -175,7 +185,7 @@ for filename in groups["group3"]:
     df[filename] = df[filename].rename(columns={"donor": "contributor"})
 
     # rename column - total revenue -> grand total
-    df[filename].columns = [re.sub(r"total revenue", "grand total", col) for col in df[filename].columns]
+    df[filename].columns = [re.sub(r"total_revenue", "grand_total", col) for col in df[filename].columns]
 
     # generalize all other column names
     df[filename] = fuzzy_rename(df[filename], g3_cols, 80)
@@ -186,14 +196,13 @@ g3_concat = pd.concat([df[f] for f in groups["group3"]], ignore_index=True)
 # MERGING / OUTPUT -----------------------------
 
 # (TO DO: MAKE LOOP FOR ALL GROUPS)
-file_path = "data" / "processed" / "group1.parquet"
-g1_concat.to_parquet(file_path)
-
-file_path = "data" / "processed" "group3.parquet"
-g3_concat.to_parquet(file_path)
+g1_concat.to_parquet("data/processed/group1.parquet")
+g2_merged.to_parquet("data/processed/group2.parquet")
+g3_concat.to_parquet("data/processed/group3.parquet")
 
 # check the parquet file:
 # check = pd.read_parquet(file_path)
 
 
 # TO-DO: UPLOAD PARQUET FILES TO GOOGLE DRIVE
+#      : FINISH CONVERTING INTO FUNCTIONS
