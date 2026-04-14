@@ -62,36 +62,42 @@ def fuzzy_rename(df, col_names, threshold=80):
             rename_map[col] = match
     return df.rename(columns=rename_map)
 
-# GROUP 1 --------------------------------------
-g1_cols = ["members", 
-           "credits_start_of_year", 
-           "current_year_assessment",
-           "total_amount_outstanding_start_of_year",
-           "receipts_credits_given_during_current_year",
-           "balances_due_from_1987_to_second_previous_year", 
-           "balances_due_previous_year",
-           "balances_due_current_year",
-           "balances_due_total"]
+# GROUP 1
+def clean_group1(df=df, groups=groups):
+    g1_cols = ["members", 
+            "credits_start_of_year", 
+            "current_year_assessment",
+            "total_amount_outstanding_start_of_year",
+            "receipts_credits_given_during_current_year",
+            "balances_due_from_1987_to_second_previous_year", 
+            "balances_due_previous_year",
+            "balances_due_current_year",
+            "balances_due_total"]
 
-for sheet in groups["group1"]:
+    for sheet in groups["group1"]:
 
-    # key all dataframes in group 1
-    table = df[sheet]
+        # key all dataframes in group 1
+        table = df[sheet]
 
-    # append "year" column
-    assessment_cols = [col for col in table.columns if "assessment" in col.lower()]
-    if assessment_cols:
-        assessment_col = assessment_cols[0]
-        year = re.search(r"\d{4}", assessment_col).group()
-        table["year"] = int(year)
-    
-    # generalizing table column names
-    cols = list(table.columns)
-    cols[:9] = g1_cols
-    table.columns = cols
+        # append "year" column
+        assessment_cols = [col for col in table.columns if "assessment" in col.lower()]
+        if assessment_cols:
+            assessment_col = assessment_cols[0]
+            year = re.search(r"\d{4}", assessment_col).group()
+            table["year"] = int(year)
+        
+        # generalizing table column names
+        cols = list(table.columns)
+        cols[:9] = g1_cols
+        table.columns = cols
 
-# concatenate group 1
-g1_concat = pd.concat([df[f] for f in groups["group1"]], ignore_index=True)
+    # concatenate group 1
+    g1_concat = pd.concat([df[f] for f in groups["group1"]], ignore_index=True)
+
+    # drop "membres" column (same as members, but French)
+    g1_concat = g1_concat.drop('membres', axis=1)
+
+    return g1_concat
 
 # GROUP 2 --------------------------------------
 
@@ -139,17 +145,18 @@ df2.columns = [col + "_as_on_2009" if col in
 shared_cols = list(set(df1.columns) & set(df2.columns))
 g2_merged = pd.merge(df1, df2, on=shared_cols, how='outer')
 
-for col in shared_cols:
-    if col != "members_and_associate_members":
-        mismatches = df1.merge(df2, on="members_and_associate_members")[
-            [f"{col}_x", f"{col}_y"]
-        ]
-        mismatches = mismatches[mismatches[f"{col}_x"] != mismatches[f"{col}_y"]]
-        if len(mismatches) > 0:
-            print(f"\n{col}:")
-            print(mismatches.head())
+def find_group2_mismatches():
+    for col in shared_cols:
+        if col != "members_and_associate_members":
+            mismatches = df1.merge(df2, on="members_and_associate_members")[
+                [f"{col}_x", f"{col}_y"]
+            ]
+            mismatches = mismatches[mismatches[f"{col}_x"] != mismatches[f"{col}_y"]]
+            if len(mismatches) > 0:
+                print(f"\n{col}:")
+                print(mismatches.head())
             
-# (TO-DO): two mismatches, Kyrgyzstan and Panama, are disrupting the merging
+# Two mismatches, Kyrgyzstan and Panama, are disrupting the merging
     # Kyrgystan: differs on rescheduled assessment (31 dec 2007)
         # reschedule assessment from a63 = balance for prior yeras 31 dec 2007 from a62
         # gonna trust the updated one
@@ -161,48 +168,50 @@ for col in shared_cols:
 g2_merged = g2_merged[g2_merged["members_and_associate_members"] != "panama"]
 
 
-# GROUP 3 --------------------------------------
-g3_cols = ["contributor", 
-           "core_voluntary_contributions_account", 
-           "voluntary_contributions_core", 
-           "voluntary_contributions_specified", 
-           "stop_tb_partnership",
-           "roll_back_malaria_partnership",
-           "special_programmes_and_collaborative_arrangements", 
-           "outbreak_and_crisis_response",  
-           "contingency_fund_for_emergencies", 
-           "special_programme_on_research_development_and_training_in_human_reproduction", 
-           "special_programme_for_research_and_training_in_tropical_diseases", 
-           "grand_total",
-           "water_supply_and_sanitation_collaborative_council",
-           "file"]
+# GROUP 3
+def clean_group3(df=df, groups=groups):
+    g3_cols = ["contributor", 
+            "core_voluntary_contributions_account", 
+            "voluntary_contributions_core", 
+            "voluntary_contributions_specified", 
+            "stop_tb_partnership",
+            "roll_back_malaria_partnership",
+            "special_programmes_and_collaborative_arrangements", 
+            "outbreak_and_crisis_response",  
+            "contingency_fund_for_emergencies", 
+            "special_programme_on_research_development_and_training_in_human_reproduction", 
+            "special_programme_for_research_and_training_in_tropical_diseases", 
+            "grand_total",
+            "water_supply_and_sanitation_collaborative_council",
+            "file"]
 
 
-# standardize column names
-for filename in groups["group3"]:
+    # standardize column names
+    for filename in groups["group3"]:
 
-    # contributor/donor column name
-    df[filename] = df[filename].rename(columns={"donor": "contributor"})
+        # contributor/donor column name
+        df[filename] = df[filename].rename(columns={"donor": "contributor"})
 
-    # rename column - total revenue -> grand total
-    df[filename].columns = [re.sub(r"total_revenue", "grand_total", col) for col in df[filename].columns]
+        # rename column - total revenue -> grand total
+        df[filename].columns = [re.sub(r"total_revenue", "grand_total", col) for col in df[filename].columns]
 
-    # generalize all other column names
-    df[filename] = fuzzy_rename(df[filename], g3_cols, 80)
+        # generalize all other column names
+        df[filename] = fuzzy_rename(df[filename], g3_cols, 80)
 
-# concatenate group 3
-g3_concat = pd.concat([df[f] for f in groups["group3"]], ignore_index=True)
+    # concatenate group 3
+    g3_concat = pd.concat([df[f] for f in groups["group3"]], ignore_index=True)
+    
+    return g3_concat
 
 # MERGING / OUTPUT -----------------------------
 
-# (TO DO: MAKE LOOP FOR ALL GROUPS)
-g1_concat.to_parquet("data/processed/group1.parquet")
-g2_merged.to_parquet("data/processed/group2.parquet")
-g3_concat.to_parquet("data/processed/group3.parquet")
+processed_data_dir = Path("data/processed")
+processed_data_dir.mkdir(parents=True, exist_ok=True)
 
-# check the parquet file:
-# check = pd.read_parquet(file_path)
+g1_concat = clean_group1()
+g1_concat.to_parquet(processed_data_dir / "group1.parquet")
 
+g2_merged.to_parquet(processed_data_dir / "group2.parquet")
 
-# TO-DO: UPLOAD PARQUET FILES TO GOOGLE DRIVE
-#      : FINISH CONVERTING INTO FUNCTIONS
+g3_concat = clean_group3()
+g3_concat.to_parquet(processed_data_dir / "group3.parquet")
