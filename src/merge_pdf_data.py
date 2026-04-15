@@ -63,12 +63,12 @@ def fuzzy_rename(df, col_names, threshold=80):
 
 # GROUP 1
 def clean_group1(df=df, groups=groups):
-    g1_cols = ["members", 
-            "credits_start_of_year", 
+    g1_cols = ["members",
+            "credits_start_of_year",
             "current_year_assessment",
             "total_amount_outstanding_start_of_year",
             "receipts_credits_given_during_current_year",
-            "balances_due_from_1987_to_second_previous_year", 
+            "balances_due_from_1987_to_second_previous_year",
             "balances_due_previous_year",
             "balances_due_current_year",
             "balances_due_total"]
@@ -84,7 +84,7 @@ def clean_group1(df=df, groups=groups):
             assessment_col = assessment_cols[0]
             year = re.search(r"\d{4}", assessment_col).group()
             table["year"] = int(year)
-        
+
         # generalizing table column names
         cols = list(table.columns)
         cols[:9] = g1_cols
@@ -128,13 +128,13 @@ merged = df1.merge(df2, on=list(df1.columns), how="left", indicator=True)
 
 
 # adding year to differentiate columns
-df1.columns = [col + "_as_on_2008" if col in 
+df1.columns = [col + "_as_on_2008" if col in
                                ["collected_adjusted_during_biennium",
                                 "balance_outstanding_a",
                                 "balance_outstanding_b",
                                 "total_outstanding_a_b"]
                                 else col for col in df1.columns]
-df2.columns = [col + "_as_on_2009" if col in 
+df2.columns = [col + "_as_on_2009" if col in
                                ["collected_adjusted_during_biennium",
                                 "balance_outstanding_a",
                                 "balance_outstanding_b",
@@ -154,7 +154,7 @@ def find_group2_mismatches():
             if len(mismatches) > 0:
                 print(f"\n{col}:")
                 print(mismatches.head())
-            
+
 # Two mismatches, Kyrgyzstan and Panama, are disrupting the merging
     # Kyrgystan: differs on rescheduled assessment (31 dec 2007)
         # reschedule assessment from a63 = balance for prior yeras 31 dec 2007 from a62
@@ -169,17 +169,17 @@ g2_merged = g2_merged[g2_merged["members_and_associate_members"] != "panama"]
 
 # GROUP 3
 def clean_group3(df=df, groups=groups):
-    g3_cols = ["contributor", 
-            "core_voluntary_contributions_account", 
-            "voluntary_contributions_core", 
-            "voluntary_contributions_specified", 
+    g3_cols = ["contributor",
+            "core_voluntary_contributions_account",
+            "voluntary_contributions_core",
+            "voluntary_contributions_specified",
             "stop_tb_partnership",
             "roll_back_malaria_partnership",
-            "special_programmes_and_collaborative_arrangements", 
-            "outbreak_and_crisis_response",  
-            "contingency_fund_for_emergencies", 
-            "special_programme_on_research_development_and_training_in_human_reproduction", 
-            "special_programme_for_research_and_training_in_tropical_diseases", 
+            "special_programmes_and_collaborative_arrangements",
+            "outbreak_and_crisis_response",
+            "contingency_fund_for_emergencies",
+            "special_programme_on_research_development_and_training_in_human_reproduction",
+            "special_programme_for_research_and_training_in_tropical_diseases",
             "grand_total",
             "water_supply_and_sanitation_collaborative_council",
             "file"]
@@ -199,7 +199,7 @@ def clean_group3(df=df, groups=groups):
 
     # concatenate group 3
     g3_concat = pd.concat([df[f] for f in groups["group3"]], ignore_index=True)
-    
+
     return g3_concat
 
 # MERGING / OUTPUT -----------------------------
