@@ -19,7 +19,7 @@ for sheet_name, table in df.items():
 
     # append file name as column
     name = re.search(r"A.*?(?=\.pdf)", sheet_name, re.IGNORECASE)
-    table["File"] = name.group()
+    df[sheet_name].loc[:, "file"] = name.group()
 
     # standardize column names
     df[sheet_name].columns = df[sheet_name].columns.str.lower().str.strip() # capitalization
@@ -38,7 +38,7 @@ groups = {
     "group3": ["A63_ID4-en.pdf (member states)",
                "A63_ID4-en.pdf (donors)",
                "A64_29Add1Corr1-en.pdf",
-               "A65_29Add1-en.pdf (General Fund",
+               "A65_29Add1-en.pdf (General)",
                "A66_29Add1-en.pdf (General)",
                "A68_INF1-en.pdf (General)",
                "A69_INF3-en.pdf (General)",
@@ -71,7 +71,9 @@ def clean_group1(df=df, groups=groups):
             "balances_due_from_1987_to_second_previous_year",
             "balances_due_previous_year",
             "balances_due_current_year",
-            "balances_due_total"]
+            "balances_due_total",
+            "file",
+            "year"]
 
     for sheet in groups["group1"]:
 
@@ -83,12 +85,17 @@ def clean_group1(df=df, groups=groups):
         if assessment_cols:
             assessment_col = assessment_cols[0]
             year = re.search(r"\d{4}", assessment_col).group()
+<<<<<<< Updated upstream:src/merge_pdf_data.py
             table["year"] = int(year)
 
+=======
+            df[sheet]["year"] = int(year)
+        
+>>>>>>> Stashed changes:src/peritz_who-pdfs_csv-merge.py
         # generalizing table column names
-        cols = list(table.columns)
-        cols[:9] = g1_cols
-        table.columns = cols
+        rename_map = dict(zip(table.columns[:9], g1_cols[:9]))
+        table = table.rename(columns=rename_map)
+        df[sheet] = table
 
     # concatenate group 1
     g1_concat = pd.concat([df[f] for f in groups["group1"]], ignore_index=True)
@@ -169,10 +176,18 @@ g2_merged = g2_merged[g2_merged["members_and_associate_members"] != "panama"]
 
 # GROUP 3
 def clean_group3(df=df, groups=groups):
+<<<<<<< Updated upstream:src/merge_pdf_data.py
     g3_cols = ["contributor",
             "core_voluntary_contributions_account",
             "voluntary_contributions_core",
             "voluntary_contributions_specified",
+=======
+
+    g3_cols = ["contributor", 
+            "core_voluntary_contributions_account", 
+            "voluntary_contributions_core", 
+            "voluntary_contributions_specified", 
+>>>>>>> Stashed changes:src/peritz_who-pdfs_csv-merge.py
             "stop_tb_partnership",
             "roll_back_malaria_partnership",
             "special_programmes_and_collaborative_arrangements",
@@ -183,6 +198,24 @@ def clean_group3(df=df, groups=groups):
             "grand_total",
             "water_supply_and_sanitation_collaborative_council",
             "file"]
+    
+    g3_years = {
+            "A63_ID4-en.pdf (member states)": 2009,
+            "A63_ID4-en.pdf (donors)": 2009,
+            "A64_29Add1Corr1-en.pdf": 2010,
+            "A65_29Add1-en.pdf (General)": 2010,
+            "A66_29Add1-en.pdf (General)": 2012,
+            "A68_INF1-en.pdf (General)": 2014,
+            "A69_INF3-en.pdf (General)": 2015,
+            "A70_INF4-en.pdf  (General)": 2016,
+            "A71_INF2-en.pdf  (General)": 2017,
+            "A72_INF5-en.pdf  (General)": 2018,
+            "A73_INF3-eng.pdf  (General)": 2019,
+            "a74_inf4-en.pdf (General)": 2020,
+            "A75_INF5-en.pdf (General)": 2021,
+            "a76_inf2-en.pdf (General)": 2022,
+            "A77_INF2-en.pdf (General)": 2023
+    }
 
 
     # standardize column names
@@ -197,6 +230,9 @@ def clean_group3(df=df, groups=groups):
         # generalize all other column names
         df[filename] = fuzzy_rename(df[filename], g3_cols, 80)
 
+        # append "year" column
+        df[filename].loc[:, "year"] = g3_years[filename]
+        
     # concatenate group 3
     g3_concat = pd.concat([df[f] for f in groups["group3"]], ignore_index=True)
 
