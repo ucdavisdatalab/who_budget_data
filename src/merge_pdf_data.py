@@ -7,11 +7,15 @@ import re
 from pathlib import Path
 from rapidfuzz import process # for column name standardization
 
-# import data
+# import main data
 data_path = "data/raw/2026-03-15_extracted_data.xlsx"
 df = pd.read_excel(data_path, sheet_name=None) # note: df is a dictionary
+
+# import inflation & country data
 inflation = pd.read_csv("data/raw/inflation_adjust2024.csv")
 inflation_adjustment_map = inflation.set_index("base_yr")["adjust"].to_dict()
+
+country = pd.read_excel("data/raw/wb_countries.xlsx").loc[:, "CountryName"]
 
 # groupings of similarly formatted PDFs
 groups = {
@@ -62,14 +66,25 @@ years = {"A58_31-en-table.pdf": 2005,
         "A77_INF2-en.pdf (General)": 2023
     }
 
-# function: standardizing column names
-def fuzzy_rename(df, col_names, threshold=80):
-    rename_map = {}
-    for col in df.columns:
-        match, score, _ = process.extractOne(col, col_names)
-        if score >= threshold and col != match:
-            rename_map[col] = match
-    return df.rename(columns=rename_map)
+# function: fuzzy match values (general case)
+def fuzzy_rename(labels, base_labels, threshold=80):
+    results = []
+    for label in labels:
+        result = process.extractOne(label, base_labels)
+        if result == None:
+            results.append(label)
+        else:
+            match, score, _ = result
+            if score >= threshold:
+                results.append(match)
+            else:
+                # add original label to list so no length mismatch
+                results.append(label) 
+    return results
+
+# function: fuzzy match column names
+def fuzzy_rename_df(df, col_names, threshold=80):
+    return df.rename(columns = dict(zip(df.columns, fuzzy_rename(df.columns, col_names, threshold))))
 
 # pre-processing
 for sheet_name, table in df.items():
@@ -103,9 +118,12 @@ for sheet_name, table in df.items():
         usd_cols = table.select_dtypes(include="number").columns.difference(["year"])
         table[usd_cols] *= inflation_adjustment_map[table_year]
 
+    # standardize contributor names using fuzzy match
+    table.iloc[:, 0] = (table.iloc[:, 0]).str.title()
+    table.iloc[:, 0] = fuzzy_rename(table.iloc[:, 0], country, 80)
+
+    # standardize 
     df[sheet_name] = table
-
-
 
 # GROUP 1
 def clean_group1(df=df, groups=groups):
@@ -187,7 +205,7 @@ def clean_group3(df=df, groups=groups):
         df[filename].columns = [re.sub(r"total_revenue", "grand_total", col) for col in df[filename].columns]
 
         # generalize all other column names
-        df[filename] = fuzzy_rename(df[filename], g3_cols, 80)
+        df[filename] = fuzzy_rename_df(df[filename], g3_cols, 80)
         
     # concatenate group 3
     g3_concat = pd.concat([df[f] for f in groups["group3"]], ignore_index=True)
@@ -207,3 +225,4 @@ g2.to_parquet(processed_data_dir / "group2.parquet")
 
 g3 = clean_group3()
 g3.to_parquet(processed_data_dir / "group3.parquet")
+
