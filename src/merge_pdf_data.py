@@ -15,7 +15,7 @@ df = pd.read_excel(data_path, sheet_name=None) # note: df is a dictionary
 inflation = pd.read_csv("data/raw/inflation_adjust2024.csv")
 inflation_adjustment_map = inflation.set_index("base_yr")["adjust"].to_dict()
 
-country = pd.read_excel("data/raw/wb_countries.xlsx").loc[:, "CountryName"]
+country = pd.read_excel("data/raw/wb_countries.xlsx")
 
 # groupings of similarly formatted PDFs
 groups = {
@@ -120,7 +120,16 @@ for sheet_name, table in df.items():
 
     # standardize contributor names using fuzzy match
     table.iloc[:, 0] = (table.iloc[:, 0]).str.title()
-    table.iloc[:, 0] = fuzzy_rename(table.iloc[:, 0], country, 80)
+    table.iloc[:, 0] = fuzzy_rename(table.iloc[:, 0], country.loc[:, "CountryName"], 80)
+
+    # add income group, region information to contributors that are countries
+    table = table.merge(
+        country[["CountryName", "Region", "IncomeGroup"]].rename(
+            columns={"Region": "region", "IncomeGroup": "income_group"}),
+        left_on=table.columns[0],
+        right_on="CountryName",
+        how="left"
+    ).drop(columns="CountryName")
 
     # standardize 
     df[sheet_name] = table
