@@ -11,6 +11,32 @@ from rapidfuzz import process # for column name standardization
 data_path = "data/raw/2026-03-15_extracted_data.xlsx"
 df = pd.read_excel(data_path, sheet_name=None) # note: df is a dictionary
 
+# import 'who_revenue[YEAR]' data
+g4 = []
+base_path = Path("data/raw/who_revenue")
+for file in base_path.iterdir():
+    # year = re.search(r"\d{4}", file.stem).group()
+    if file.suffix == ".csv":
+        table = pd.read_csv(file)
+    elif file.suffix == ".xlsx":
+        table = pd.read_excel(file)
+    table.columns = table.columns.str.lower().str.strip()
+    table = table.rename(columns={"state": "contributor", "region": "contributor"})
+    g4.append(table)
+
+g4_concat = pd.concat(g4, ignore_index=True)
+
+# convert g4 data to g3 format
+g4_concat["grant_type"] = g4_concat["grant_type"].str.strip().str.lower().str.replace(" ", "_")
+g4_concat["contributor"] = g4_concat["contributor"].str.title()
+g4_concat = g4_concat[g4_concat["grant_type"] != "revenue_from_other_activities"]
+
+g4_pivot = g4_concat.pivot_table(
+    index=["contributor", "year"],
+    columns="grant_type",
+    values="amount"
+).reset_index()
+
 # import inflation & country data
 inflation = pd.read_csv("data/raw/inflation_adjust2024.csv")
 inflation_adjustment_map = inflation.set_index("base_yr")["adjust"].to_dict()
@@ -215,9 +241,18 @@ def clean_group3(df=df, groups=groups):
 
         # generalize all other column names
         df[filename] = fuzzy_rename_df(df[filename], g3_cols, 80)
-        
+
+        # replace 'grand_total' with 'total_voluntary_contributions' for clarity
+        df[filename] = df[filename].rename(columns={"grand_total": "total_voluntary_contributions"})
+
     # concatenate group 3
     g3_concat = pd.concat([df[f] for f in groups["group3"]], ignore_index=True)
+
+    g3_concat = g3_concat.merge(
+        g4_pivot[["contributor", "year", "assessed_contributions"]],
+        on=["contributor", "year"],
+        how="left"
+    )
 
     return g3_concat
 
