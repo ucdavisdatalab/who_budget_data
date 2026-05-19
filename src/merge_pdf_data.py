@@ -12,7 +12,7 @@ data_path = "data/raw/2026-03-15_extracted_data.xlsx"
 df = pd.read_excel(data_path, sheet_name=None) # note: df is a dictionary
 
 # import 'who_revenue[YEAR]' data
-g4 = []
+g3 = []
 base_path = Path("data/raw/who_revenue")
 for file in base_path.iterdir():
     # year = re.search(r"\d{4}", file.stem).group()
@@ -22,16 +22,16 @@ for file in base_path.iterdir():
         table = pd.read_excel(file)
     table.columns = table.columns.str.lower().str.strip()
     table = table.rename(columns={"state": "contributor", "region": "contributor"})
-    g4.append(table)
+    g3.append(table)
 
-g4_concat = pd.concat(g4, ignore_index=True)
+g3_concat = pd.concat(g3, ignore_index=True)
 
 # convert g4 data to g3 format
-g4_concat["grant_type"] = g4_concat["grant_type"].str.strip().str.lower().str.replace(" ", "_")
-g4_concat["contributor"] = g4_concat["contributor"].str.title()
-g4_concat = g4_concat[g4_concat["grant_type"] != "revenue_from_other_activities"]
+g3_concat["grant_type"] = g3_concat["grant_type"].str.strip().str.lower().str.replace(" ", "_")
+g3_concat["contributor"] = g3_concat["contributor"].str.title()
+g4_concat = g3_concat[g3_concat["grant_type"] != "revenue_from_other_activities"]
 
-g4_pivot = g4_concat.pivot_table(
+g3_pivot = g3_concat.pivot_table(
     index=["contributor", "year"],
     columns="grant_type",
     values="amount"
@@ -49,10 +49,7 @@ groups = {
                "A60_ID6-en-table.pdf",
                "A61_ID1-en-table.pdf"],
 
-    "group2": ["A62_30-en.pdf",
-               "A63_33-en.pdf"],
-
-    "group3": ["A63_ID4-en.pdf (member states)",
+    "group2": ["A63_ID4-en.pdf (member states)",
                "A63_ID4-en.pdf (donors)",
                "A64_29Add1Corr1-en.pdf",
                "A65_29Add1-en.pdf (General)",
@@ -78,7 +75,7 @@ years = {"A58_31-en-table.pdf": 2005,
         "A63_ID4-en.pdf (member states)": 2009,
         "A63_ID4-en.pdf (donors)": 2009,
         "A64_29Add1Corr1-en.pdf": 2010,
-        "A65_29Add1-en.pdf (General)": 2010,
+        "A65_29Add1-en.pdf (General)": 2011,
         "A66_29Add1-en.pdf (General)": 2012,
         "A68_INF1-en.pdf (General)": 2014,
         "A69_INF3-en.pdf (General)": 2015,
@@ -162,7 +159,7 @@ for sheet_name, table in df.items():
 
 # GROUP 1
 def clean_group1(df=df, groups=groups):
-    g1_cols = ["members",
+    g1_cols = ["contributor",
             "credits_start_of_year",
             "current_year_assessment",
             "total_amount_outstanding_start_of_year",
@@ -189,33 +186,21 @@ def clean_group1(df=df, groups=groups):
     # drop "membres" column (same as members, but French)
     g1_concat = g1_concat.drop('membres', axis=1)
 
+    # re-arrange columns for more logical ordering
+    g1_concat = g1_concat[['contributor', 'region', 'year', 'income_group',  'file', 
+                          'credits_start_of_year', 'current_year_assessment',
+                          'total_amount_outstanding_start_of_year',
+                          'receipts_credits_given_during_current_year',
+                          'balances_due_from_1987_to_second_previous_year',
+                          'balances_due_previous_year', 'balances_due_current_year',
+                          'balances_due_total']]
+
     return g1_concat
 
-# GROUP 2 
+# GROUP 2
 def clean_group2(df=df, groups=groups):
 
-    # A63_33-en.pdf is just an updated version of A62_30-en.pdf, so we'll just drop A62
-    g2 = df["A63_33-en.pdf"].copy()
-
-    g2_cols = {
-            "members_and_associate_members": "members", 
-            "biennial_assessment_2008": "biennial_assessment_prev_year",
-            "biennial_assessment_2009": "biennial_assessment_curr_year",
-            "collected_or_adjusted_for_current_biennium_including_prepayment_2008": "collected_or_adjusted_including_prev_year_prepayment",
-            "collected_or_adjusted_for_current_biennium_including_prepayment_2009": "collected_or_adjusted_including_curr_year_prepayment",
-            "balance_for_prior_years_as_on_31_december_2007": "prior_years_balance",
-            "rescheduled_assessment_as_on_31_december_2007": "rescheduled_assessment_as_on_prev_year",
-            "collected_or_adjusted_during_current_biennium": "collected_or_adjusted_current_biennium"
-    }
-
-    g2 = g2.rename(columns=g2_cols)
-
-    return g2
-
-# GROUP 3
-def clean_group3(df=df, groups=groups):
-
-    g3_cols = ["contributor",
+    g2_cols = ["contributor",
             "core_voluntary_contributions_account",
             "voluntary_contributions_core",
             "voluntary_contributions_specified",
@@ -231,7 +216,7 @@ def clean_group3(df=df, groups=groups):
             "file"]
 
     # standardize column names
-    for filename in groups["group3"]:
+    for filename in groups["group2"]:
 
         # contributor/donor column name
         df[filename] = df[filename].rename(columns={"donor": "contributor"})
@@ -240,21 +225,37 @@ def clean_group3(df=df, groups=groups):
         df[filename].columns = [re.sub(r"total_revenue", "grand_total", col) for col in df[filename].columns]
 
         # generalize all other column names
-        df[filename] = fuzzy_rename_df(df[filename], g3_cols, 80)
+        df[filename] = fuzzy_rename_df(df[filename], g2_cols, 80)
 
         # replace 'grand_total' with 'total_voluntary_contributions' for clarity
         df[filename] = df[filename].rename(columns={"grand_total": "total_voluntary_contributions"})
 
-    # concatenate group 3
-    g3_concat = pd.concat([df[f] for f in groups["group3"]], ignore_index=True)
+    # concatenate group 2
+    g2_concat = pd.concat([df[f] for f in groups["group2"]], ignore_index=True)
 
-    g3_concat = g3_concat.merge(
-        g4_pivot[["contributor", "year", "assessed_contributions"]],
+    # merge group 3 with group 2
+    g2_concat = g2_concat.merge(
+        g3_pivot[["contributor", "year", "assessed_contributions"]],
         on=["contributor", "year"],
         how="left"
     )
 
-    return g3_concat
+    # reorder columns
+    g2_concat = g2_concat[['contributor', 'region', 'year', 'income_group', 
+                           'file', 'voluntary_contributions_specified',
+                           'special_programme_for_research_and_training_in_tropical_diseases',
+                           'stop_tb_partnership', 
+                           'special_programme_on_research_development_and_training_in_human_reproduction',
+                           'roll_back_malaria_partnership', 'water_supply_and_sanitation_collaborative_council', 
+                           'contingency_fund_for_emergencies', 'special_programmes_and_collaborative_arrangements',
+                           'outbreak_and_crisis_response', 'core_voluntary_contributions_account', 
+                           'voluntary_contributions_core', 'total_voluntary_contributions',
+                           'assessed_contributions']]
+    
+    # convert column 'year' to integer
+    g2_concat["year"] = pd.to_numeric(g2_concat["year"], errors="coerce")
+
+    return g2_concat
 
 # MERGING / OUTPUT -----------------------------
 
@@ -267,6 +268,10 @@ g1.to_parquet(processed_data_dir / "group1.parquet")
 g2 = clean_group2()
 g2.to_parquet(processed_data_dir / "group2.parquet")
 
-g3 = clean_group3()
-g3.to_parquet(processed_data_dir / "group3.parquet")
 
+# just so I can look through it conveniently
+g1.to_csv(processed_data_dir / "group1.csv")
+g2.to_csv(processed_data_dir / "group2.csv")
+
+for col in g2.columns:
+    print(g2[col].dtype)
