@@ -1,7 +1,7 @@
-## group1.parquet
-Description: This data set contains data on assessed contributions determined by the WHO (World Health Organization) for different member states for the years 2005, 2007, and 2008. 
+## assessed_contributions.parquet
+Description: This data set contains data on assessed contributions determined by the WHO (World Health Organization) for different member states for the years 2005, 2007, and 2008. For more information on how the WHO is funded, please visit https://www.who.int/about/funding/.
 Source: WHO assessed contributions reports (A58, A60, A61)
-Years covered: 2005, 2007, 2008
+Years covered: 2005, 2007-2008
 Unit of observation: one row per member state per year
 Currency: USD, inflation-adjusted to 2024
 
@@ -22,11 +22,11 @@ Currency: USD, inflation-adjusted to 2024
 | balances_due_total | integer | Sum of all outstanding balances across all periods |
 
 
-## group2.parquet
-Description: This data set contains data on voluntary contributions to the WHO (World Health Organization) from member states for the years 2009-2023, except for 2013. These voluntary contributions are broken down into contributions earmarked for specific purposes and programs. In addition, this data set includes the total assessed contributions for member states per year for years 2014-2022. 
+## voluntary_contributions.parquet
+Description: This data set contains data on voluntary contributions to the WHO (World Health Organization) from member states for the years 2009-2023, except for 2013. These voluntary contributions are broken down into contributions earmarked for specific purposes and programs. In addition, this data set includes the total assessed contributions for member states per year for years 2014-2022. For more information on how the WHO is funded, please visit https://www.who.int/about/funding/.
 
 Source: WHO voluntary contributions reports (A68, A69, A70, A71, A72, A73, A74, A75, A76)
-Years covered: 2009, 2010, 2011, 2012, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023
+Years covered: 2009-2012, 2014-2023
 Unit of observation: one row per member state per year
 Currency: USD, inflation-adjusted to 2024
 
@@ -50,3 +50,7 @@ Currency: USD, inflation-adjusted to 2024
 | voluntary_contributions_core | float | Core voluntary contributions not designated to a specific programme |
 | total_voluntary_contributions | float | Total voluntary contributions across all categories |
 | assessed_contributions | float | Mandatory assessed contributions owed by WHO member states based on the UN scale of assessments |
+
+
+## license and attribution
+This dataset is an adaptation of original works published by the World Health Organization (WHO). Licence: [CC BY-NC-SA 3.0 IGO](https://creativecommons.org/licenses/by-nc-sa/3.0/igo/). This adaptation was not created by WHO. WHO is not responsible for the content or accuracy of this adaptation. The original edition shall be the binding and authentic edition.
