@@ -52,7 +52,9 @@ Currency: USD, inflation-adjusted to 2024
 | assessed_contributions | float | Mandatory assessed contributions owed by WHO member states based on the UN scale of assessments |
 
 ## Methods
-Tabular data was extracted from WHO World Health Assembly PDF documents using a semi-automated pipeline. For each source document, pages containing contribution tables were converted to JPEG images at 300 DPI using pdftocairo 26.02.0 (Poppler). The resulting images were then uploaded to Claude Sonnet 4.5 (Anthropic), which extracted the tabular data and returned it as CSV strings. Extracted CSVs were manually reviewed and saved.
+Tabular data was extracted from WHO World Health Assembly PDF documents using a semi-automated pipeline. For each source document, pages containing contribution tables were converted to JPEG images at 300 DPI using pdftocairo 26.02.0 (Poppler). The resulting images were then uploaded to Claude Sonnet 4.5 (Anthropic), which extracted the tabular data and returned it as CSV strings. Extracted CSVs were manually reviewed and saved. 
+
+Extracted data was cross-validated against a separate extraction of the same WHO voluntary contributions reports by Lauren Peritz, who utilized a Python pipeline based on the pdfplumber package.
 
 Extracted data was then cleaned and standardized using a Python processing pipeline. Contributor names were standardized to World Bank country names using fuzzy string matching (RapidFuzz). World Bank region and income group classifications were merged in based on matched country names. All monetary values were inflation-adjusted to 2024 USD.
 
