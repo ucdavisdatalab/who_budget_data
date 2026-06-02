@@ -14,21 +14,23 @@ In the listing of directories, delete anything that isn't relevant to your
 project.
 -->
 
-# COLLABORATOR PROJECT_NAME Project
+# Peritz WHO-PDFs Project
 
-[top]: #COLLABORATOR-PROJECT_NAME-project
+[top]: #Peritz-WHO-PDFs-project
 
-_Maintainer: YOUR_NAME_  
-_Collaborators: NAME1, NAME2, ..._  
+_Maintainer: Joey Suen_  
+_Collaborators: Nick Ulle_  
 
-This repository contains code for COLLABORATOR's PROJECT_NAME project. The
-project is PROJECT_DESCRIPTION. The goal of our collaboration is PROJECT_GOAL.
+This repository contains code for Peritz's WHO-PDFs project. The
+project is to merge extracted data from WHO PDFs into generalized tables.
+The goal of our collaboration is to provide historical data of voluntary
+contributions to WHO that can be used for the Russ WHO project .
 
 Links:
 
 * [Google Drive][google]
 
-[google]: DRIVE_LINK
+[google]: https://drive.google.com/drive/folders/1UQDlTehV12y2qcDdm35LMlKlgDM-9L9E?usp=drive_link
 
 
 ## File and Directory Structure
