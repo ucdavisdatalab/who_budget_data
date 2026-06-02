@@ -19,7 +19,7 @@ project.
 [top]: #Peritz-WHO-PDFs-project
 
 _Maintainer: Joey Suen_  
-_Collaborators: Nick Ulle_  
+_Collaborators: Nick Ulle, Lauren Peritz_  
 
 This repository contains code for Peritz's WHO-PDFs project. The
 project is to merge extracted data from WHO PDFs into generalized tables.
