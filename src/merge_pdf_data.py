@@ -20,6 +20,12 @@ inflation_adjustment_map = inflation.set_index("base_yr")["adjust"].to_dict()
 # world bank country metadata
 country = pd.read_excel("data/raw/wb_countries.xlsx")
 
+# 2024 voluntary contributions
+vol_con_2024 = pd.read_csv("data/raw/WHO_voluntary_contributions_2024.csv")
+vol_con_2024["year"] = 2024
+vol_con_2024["file"] = "WHO_voluntary_contributions_2024"
+df["WHO_voluntary_contributions_2024.pdf"] = vol_con_2024
+
 # WHO revenue data (assessed + voluntary contributions by country/year)
 who_revenue_frames = []
 for file in Path("data/raw/who_revenue").iterdir():
@@ -29,6 +35,7 @@ for file in Path("data/raw/who_revenue").iterdir():
         table = pd.read_excel(file)
     table.columns = table.columns.str.lower().str.strip()
     table = table.rename(columns={"state": "contributor", "region": "contributor"})
+    table[["year", "amount"]] = table[["year", "amount"]].apply(pd.to_numeric, errors="coerce")
     who_revenue_frames.append(table)
 
 who_revenue = pd.concat(who_revenue_frames, ignore_index=True)
@@ -57,12 +64,12 @@ who_revenue_pivot = who_revenue.pivot_table(
 groups = {
     "assessed_contributions": [
         "A58_31-en-table.pdf",
+        "A60_30-en.pdf",
         "A60_ID6-en-table.pdf",
         "A61_ID1-en-table.pdf"
     ],
     "voluntary_contributions": [
-        "A63_ID4-en.pdf (member states)",
-        "A63_ID4-en.pdf (donors)",
+        "A63_ID4-en.pdf",
         "A64_29Add1Corr1-en.pdf",
         "A65_29Add1-en.pdf (General)",
         "A66_29Add1-en.pdf (General)",
@@ -75,18 +82,19 @@ groups = {
         "a74_inf4-en.pdf (General)",
         "A75_INF5-en.pdf (General)",
         "a76_inf2-en.pdf (General)",
-        "A77_INF2-en.pdf (General)"
+        "A77_INF2-en.pdf (General)",
+        "WHO_voluntary_contributions_2024.pdf"
     ]
 }
 
 years = {
     "A58_31-en-table.pdf": 2005,
+    "A60_30-en.pdf": 2006,
     "A60_ID6-en-table.pdf": 2007,
     "A61_ID1-en-table.pdf": 2008,
     "A62_30-en.pdf": 2008,
     "A63_33-en.pdf": 2009,
-    "A63_ID4-en.pdf (member states)": 2009,
-    "A63_ID4-en.pdf (donors)": 2009,
+    "A63_ID4-en.pdf": 2009,
     "A64_29Add1Corr1-en.pdf": 2010,
     "A65_29Add1-en.pdf (General)": 2011,
     "A66_29Add1-en.pdf (General)": 2012,
@@ -99,7 +107,8 @@ years = {
     "a74_inf4-en.pdf (General)": 2020,
     "A75_INF5-en.pdf (General)": 2021,
     "a76_inf2-en.pdf (General)": 2022,
-    "A77_INF2-en.pdf (General)": 2023
+    "A77_INF2-en.pdf (General)": 2023,
+    "WHO_voluntary_contributions_2024.pdf": 2024
 }
 
 # =============================================================================
@@ -121,7 +130,7 @@ def fuzzy_rename_df(df, col_names, threshold=80):
     return df.rename(columns=dict(zip(df.columns, fuzzy_rename(df.columns, col_names, threshold))))
 
 # =============================================================================
-# PRE-PROCESSING (applied to all sheets)
+# PRE-PROCESSING (applied to all sheets in main .xlsx)
 # =============================================================================
 
 for sheet_name, table in df.items():
@@ -140,12 +149,7 @@ for sheet_name, table in df.items():
     table["file"] = name.group()
 
     # append year
-    if sheet_name in groups["assessed_contributions"]:
-        assessment_cols = [col for col in table.columns if "assessment" in col.lower()]
-        if assessment_cols:
-            year = re.search(r"\d{4}", assessment_cols[0]).group()
-            table["year"] = int(year)
-    elif sheet_name in years:
+    if sheet_name in years:
         table["year"] = years[sheet_name]
 
     # inflation adjustment
@@ -156,7 +160,7 @@ for sheet_name, table in df.items():
 
     # standardize contributor names to world bank country names
     table.iloc[:, 0] = table.iloc[:, 0].str.title()
-    table.iloc[:, 0] = fuzzy_rename(table.iloc[:, 0], country["CountryName"], 80)
+    table.iloc[:, 0] = fuzzy_rename(table.iloc[:, 0], country["CountryName"], 88)
 
     # merge in world bank region and income group
     table = table.merge(
@@ -173,6 +177,25 @@ for sheet_name, table in df.items():
 # ASSESSED CONTRIBUTIONS (2005, 2007, 2008)
 # =============================================================================
 
+# 2006 assessed contributions
+a60_30 = df["A60_30-en.pdf"].rename(columns={
+    "members": "contributor",
+    "net_assessments": "current_year_assessment",
+    "balance_outstanding_31_december_2006": "balances_due_current_year",
+    "total_outstanding": "balances_due_total"
+})
+for col in ["credits_start_of_year", "total_amount_outstanding_start_of_year", 
+            "receipts_credits_given_during_current_year", "balances_due_from_1987_to_second_previous_year",
+            "balances_due_previous_year"]:
+    a60_30[col] = pd.NA
+a60_30 = a60_30.drop(columns=["collected_during_2006", "balance_outstanding_1_january_2006",
+                              "collected_or_adjusted_during_2006", "balance_outstanding_31_december_2006_prior"])
+df["A60_30-en.pdf"] = a60_30[["contributor", "credits_start_of_year", "current_year_assessment",
+    "total_amount_outstanding_start_of_year", "receipts_credits_given_during_current_year",
+    "balances_due_from_1987_to_second_previous_year", "balances_due_previous_year",
+    "balances_due_current_year", "balances_due_total", "file", "year", "region", "income_group"]]
+
+
 def clean_assessed_contributions(df=df, groups=groups):
 
     col_names = ["contributor", "credits_start_of_year", "current_year_assessment",
@@ -186,8 +209,9 @@ def clean_assessed_contributions(df=df, groups=groups):
         df[sheet] = table.rename(columns=rename_map)
 
     concat = pd.concat([df[f] for f in groups["assessed_contributions"]], ignore_index=True)
-    concat = concat.drop('membres', axis=1)
+    concat = concat.drop('membres', axis=1) # drop "membres" column
 
+    # reorder columns
     concat = concat[['contributor', 'region', 'year', 'income_group', 'file',
                      'credits_start_of_year', 'current_year_assessment',
                      'total_amount_outstanding_start_of_year',
@@ -238,6 +262,7 @@ def clean_voluntary_contributions(df=df, groups=groups):
             columns={"Region": "region", "IncomeGroup": "income_group"}),
         left_on="contributor", right_on="CountryName", how="left"
     ).drop(columns="CountryName")
+    vol_2013["file"] = "who_revenue2013.csv"
 
     concat = pd.concat([concat, vol_2013], ignore_index=True)
 
@@ -267,10 +292,8 @@ processed_data_dir.mkdir(parents=True, exist_ok=True)
 
 assessed = clean_assessed_contributions()
 assessed.to_parquet(processed_data_dir / "assessed_contributions.parquet")
-assessed.to_csv(processed_data_dir / "assessed_contributions.csv")
+# assessed.to_csv(processed_data_dir / "assessed_contributions.csv")
 
 voluntary = clean_voluntary_contributions()
 voluntary.to_parquet(processed_data_dir / "voluntary_contributions.parquet")
-voluntary.to_csv(processed_data_dir / "voluntary_contributions.csv")
-
-
+# voluntary.to_csv(processed_data_dir / "voluntary_contributions.csv")

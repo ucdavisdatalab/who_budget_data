@@ -1,5 +1,5 @@
-## assessed_contributions.parquet
-Description: This data set contains data on assessed contributions determined by the WHO (World Health Organization) for different member states for the years 2005, 2007, and 2008. For more information on how the WHO is funded, please visit https://www.who.int/about/funding/.
+## Assessed Contributions
+Description: This data set, contained in assessed_contributions.parquet, contains data on assessed contributions determined by the WHO (World Health Organization) for different member states for the years 2005, 2007, and 2008. For more information on how the WHO is funded, please visit [this page from the WHO](https://www.who.int/about/funding/). For more information on how countries are classified into income groups, please visit [this article from The World Bank](https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups). Please note that this article provides information on country income classifications in the 2026 fiscal year, while this data set uses the classifcations from the 2025 fiscal year.
 Source: WHO assessed contributions reports (A58, A60, A61)
 Years covered: 2005, 2007-2008
 Unit of observation: one row per member state per year
@@ -9,8 +9,8 @@ Currency: USD, inflation-adjusted to 2024
 |---|---|---|
 | contributor | string | WHO member state name, standardized to World Bank country names |
 | region | string | World Bank geographic region |
-| year | integer | Report year |
-| income_group | string | World Bank income classification |
+| year | integer | Year in which contributions were made |
+| income_group | string | World Bank income classification (for Fiscal Year 2025) |
 | file | string | Source file for row |
 | credits_start_of_year | integer | Credit balance carried over from the previous year |
 | current_year_assessment | integer | Amount assessed to the member state for the current year |
@@ -22,11 +22,11 @@ Currency: USD, inflation-adjusted to 2024
 | balances_due_total | integer | Sum of all outstanding balances across all periods |
 
 
-## voluntary_contributions.parquet
-Description: This data set contains data on voluntary contributions to the WHO (World Health Organization) from member states for the years 2009-2023, except for 2013. These voluntary contributions are broken down into contributions earmarked for specific purposes and programs. In addition, this data set includes the total assessed contributions for member states per year for years 2014-2022. For more information on how the WHO is funded, please visit https://www.who.int/about/funding/.
+## Voluntary Contributions
+Description: This data set, contained in voluntary_contributions.parquet, contains data on voluntary contributions to the WHO (World Health Organization) from member states for the years 2009-2023, except for 2013. These voluntary contributions are broken down into contributions earmarked for specific purposes and programs. In addition, this data set includes the total assessed contributions for member states per year for years 2014-2022. For more information on how the WHO is funded, please visit [this page from the WHO](https://www.who.int/about/funding/). For more information on how countries are classified into income groups, please visit [this article from The World Bank](https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups). Please note that this article provides information on country income classifications in the 2026 fiscal year, while this data set uses the classifcations from the 2025 fiscal year.
 
 Source: WHO voluntary contributions reports (A68, A69, A70, A71, A72, A73, A74, A75, A76)
-Years covered: 2009-2012, 2014-2023
+Years covered: 2009-2012, 2014-2024
 Unit of observation: one row per member state per year
 Currency: USD, inflation-adjusted to 2024
 
@@ -34,8 +34,8 @@ Currency: USD, inflation-adjusted to 2024
 |---|---|---|
 | contributor | string | WHO member state name, standardized to World Bank country names |
 | region | string | World Bank geographic region |
-| year | integer | Report year |
-| income_group | string | World Bank income classification |
+| year | integer | Year in which contributions were made |
+| income_group | string | World Bank income classification (for Fiscal Year 2025) |
 | file | string | Source file for row |
 | voluntary_contributions_specified | float | Total voluntary contributions earmarked for a specific purpose |
 | special_programme_for_research_and_training_in_tropical_diseases | float | Contributions to the UNICEF/UNDP/WHO/World Bank Special Programme for Research and Training in Tropical Diseases (TDR) |
@@ -51,6 +51,9 @@ Currency: USD, inflation-adjusted to 2024
 | total_voluntary_contributions | float | Total voluntary contributions across all categories |
 | assessed_contributions | float | Mandatory assessed contributions owed by WHO member states based on the UN scale of assessments |
 
+## Methods
+Tabular data was extracted from WHO World Health Assembly PDF documents using a semi-automated pipeline. For each source document, pages containing contribution tables were converted to JPEG images at 300 DPI using pdftocairo 26.02.0 (Poppler). The resulting images were then uploaded to Claude Sonnet 4.5 (Anthropic), which extracted the tabular data and returned it as CSV strings. Extracted CSVs were manually reviewed and saved.
 
-## license and attribution
-This dataset is an adaptation of original works published by the World Health Organization (WHO). Licence: [CC BY-NC-SA 3.0 IGO](https://creativecommons.org/licenses/by-nc-sa/3.0/igo/). This adaptation was not created by WHO. WHO is not responsible for the content or accuracy of this adaptation. The original edition shall be the binding and authentic edition.
+Extracted data was then cleaned and standardized using a Python processing pipeline. Contributor names were standardized to World Bank country names using fuzzy string matching (RapidFuzz). World Bank region and income group classifications were merged in based on matched country names. All monetary values were inflation-adjusted to 2024 USD.
+
+Version: 1.0
