@@ -1,36 +1,21 @@
-<!--
-DataLab Project Template
+# World Health Organization Budget Data
 
-Replace allcaps text with your project details. PROJECT_NAME should be your
-project's short name.
+[top]: #world-health-organization-budget-data
 
-On GitHub, name the project repository according to the following format:
+_Authors: Joey Suen, Nick Ulle, Lauren Peritz_  
+_Maintainer: Nick Ulle <<naulle@ucdavis.edu>>_  
 
-YEAR_COLLABORATOR_PROJECT_NAME
+This repository contains code to post-process data extracted from World Health
+Organization Budget PDFs (the data were extracted with Claude Sonnet 4.5). The
+repository also contains code for some initial exploratory analysis of the
+data. 
 
-The project's Google Drive directory should also follow this format.
+The purpose of this project is to make historical data about voluntary
+contributions to the World Health Organization more easily accessible. The
+project was proposed by Lauren Peritz and carried out by the [UC Davis
+DataLab][datalab].
 
-In the listing of directories, delete anything that isn't relevant to your
-project.
--->
-
-# Peritz WHO-PDFs Project
-
-[top]: #Peritz-WHO-PDFs-project
-
-_Maintainer: Joey Suen_  
-_Collaborators: Nick Ulle, Lauren Peritz_  
-
-This repository contains code for Peritz's WHO-PDFs project. The
-project is to merge extracted data from WHO PDFs into generalized tables.
-The goal of our collaboration is to provide historical data of voluntary
-contributions to WHO that can be used for the Russ WHO project .
-
-Links:
-
-* [Google Drive][google]
-
-[google]: https://drive.google.com/drive/folders/1UQDlTehV12y2qcDdm35LMlKlgDM-9L9E?usp=drive_link
+[datalab]: https://datalab.ucdavis.edu/
 
 
 ## File and Directory Structure
@@ -49,18 +34,16 @@ The directory structure for the project is:
 
 ```
 data/           Data sets
-docs/           Supporting documents
-models/         Trained and serialized models
+figures/        Graphics and figures
 notebooks/      Notebooks (`.ipynb`, `.Rmd`, ...)
-outputs/        Outputs from the code, including intermediate data sets
-reports/        HTML or PDF reports generated from notebooks
-└── figures/    Graphics and figures to be used in reporting
 src/            Python/Java/... (non-R) source code
 R/              R source code
 .gitattributes  Paths Git should give special treatment
 .gitignore      Paths Git should ignore
 LICENSE         License for the project
 README.md       This file
+pixi.lock
+pixi.toml
 ```
 
 <!--
