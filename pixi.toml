@@ -1,7 +1,12 @@
 [workspace]
-authors = ["joey suen <joeysuen66@gmail.com>", "Nick Ulle <nick.ulle@gmail.com>"]
+authors = [
+  "Joey Suen <joeysuen66@gmail.com>",
+  "Nick Ulle <nick.ulle@gmail.com>",
+  "Lauren Peritz <lperitz@ucdavis.edu>"
+]
 channels = ["conda-forge"]
-name = "2026_peritz_who-pdfs"
+name = "who_budget_data"
+description = "Code to extract data from World Health Organization budget PDFs."
 platforms = ["osx-arm64", "linux-64", "win-64", "osx-64"]
 version = "0.1.0"
 
