@@ -1,2 +1,0 @@
-## License and Attribution
-This dataset is an adaptation of original works published by the World Health Organization (WHO). License: [CC BY-NC-SA 3.0 IGO](https://creativecommons.org/licenses/by-nc-sa/3.0/igo/). This adaptation was not created by WHO. WHO is not responsible for the content or accuracy of this adaptation. The original edition shall be the binding and authentic edition.
