@@ -10,16 +10,28 @@ description = "Code to extract data from World Health Organization budget PDFs."
 platforms = ["osx-arm64", "linux-64", "win-64", "osx-64"]
 version = "0.1.0"
 
+
 [tasks]
 
+
+[environments]
+r = {features = ["r"], no-default-feature = true}
+
+
 [dependencies]
+# Default environment for Python code and Poppler.
 python = ">=3.14.3,<3.15"
 jupyter = ">=1.1.1,<2"
 pandas = ">=3.0.1,<4"
 polars = ">=1.38.1,<2"
+poppler = ">=26.02.0,<27"
 pyarrow = ">=23.0.1,<24"
 rapidfuzz = ">=3.14.5,<4"
 openpyxl = ">=3.1.5,<4"
 matplotlib = ">=3.0,<4"
+
+
+[feature.r.dependencies]
+# Environment for R code.
 r-base = ">=4.3.3,<5"
 r-arrow = ">=20.0.0,<21"
