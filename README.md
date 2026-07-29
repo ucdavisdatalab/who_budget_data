@@ -1,4 +1,4 @@
-# World Health Organization Budget Data
+# World Health Organization Budget Dataset
 
 [top]: #world-health-organization-budget-data
 
@@ -6,29 +6,24 @@ _Authors: Joey Suen, Nick Ulle, Lauren Peritz_
 _Maintainer: Nick Ulle <<naulle@ucdavis.edu>>_  
 
 This repository contains code to post-process data extracted from World Health
-Organization Budget PDFs (the data were extracted with Claude Sonnet 4.5). The
-repository also contains code for some initial exploratory analysis of the
-data. 
+Organization (WHO) Budget PDFs. The repository also contains code for some
+initial exploratory analysis of the dataset. 
+
+> [!IMPORTANT]
+>
+> This repository only contains the code and documentation for the dataset. It
+> does not include the dataset itself (nor the `data/` directory).
+>
+> The dataset is provided separately.
 
 The purpose of this project is to make historical data about voluntary
-contributions to the World Health Organization more easily accessible. The
-project was proposed by Lauren Peritz and carried out by the [UC Davis
-DataLab][datalab].
+contributions to the WHO more easily accessible. The project was proposed by
+Lauren Peritz and carried out by the [UC Davis DataLab][datalab].
 
 [datalab]: https://datalab.ucdavis.edu/
 
 
 ## File and Directory Structure
-
-> [!IMPORTANT]
->
-> Do not commit large files (> 1 MB) to the repository. Upload these to cloud
-> storage (such as Google Drive or Box) instead.
->
-> When you clone this repository, Git will not necessarily create directories
-> that only contain large, untracked files (typically `data/` and `outputs/`).
-> Instead you must manually create these directories and download their files
-> from cloud storage.
 
 The directory structure for the project is:
 
@@ -40,10 +35,11 @@ src/            Python/Java/... (non-R) source code
 R/              R source code
 .gitattributes  Paths Git should give special treatment
 .gitignore      Paths Git should ignore
-LICENSE         License for the project
+LICENSE         License for the code
+LICENSE-DATA    License for the dataset
 README.md       This file
-pixi.lock
-pixi.toml
+pixi.lock       Exact description of Pixi environment (dependencies)
+pixi.toml       Project metadata file (including dependencies)
 ```
 
 <!--
@@ -57,22 +53,15 @@ The files in the `data/` directory are:
 ([back to top][top])
 
 
-## Data
+## Dataset Documentation
 
-This dataset is an adaptation of original works published by the World Health
-Organization (WHO). License: [CC BY-NC-SA 3.0
-IGO](https://creativecommons.org/licenses/by-nc-sa/3.0/igo/). This adaptation
-was not created by WHO. WHO is not responsible for the content or accuracy of
-this adaptation. The original edition shall be the binding and authentic
-edition.
+_Version: 1.0_  
+_License: [CC BY-NC-SA 4.0 International](LICENSE-DATA)_  
 
-Version: 1.0
+The dataset consists of two parts: assessed contributions and voluntary
+contributions. We provide data dictionaries for these two parts and a
+description of how they were extracted in the subsequent sections.
 
-### Assessed Contributions
-
-Description: This dataset, contained in `assessed_contributions.parquet`,
-contains data on assessed contributions determined by the WHO (World Health
-Organization) for different member states for the years 2005, 2007, and 2008.
 For more information on how the WHO is funded, please visit [this page from the
 WHO][who-funding]. For more information on how countries are classified into
 income groups, please visit [this article from The World
@@ -83,12 +72,31 @@ this dataset uses the classifications from the 2025 fiscal year.
 [who-funding]: https://www.who.int/about/funding/
 [world-bank-income-groups]: https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups
 
-Source: WHO assessed contributions reports (A58, A60, A61)
-Years covered: 2005, 2007-2008
-Unit of observation: one row per member state per year
-Currency: USD, inflation-adjusted to 2024
+This dataset is an adaptation of original works published by the World Health
+Organization (WHO) under the [CC BY-NC-SA 3.0 IGO][] license. This adaptation
+was not created by WHO. WHO is not responsible for the content or accuracy of
+this adaptation. The original edition shall be the binding and authentic
+edition.
 
-| Variable                                         | Type    | Description                                                             |
+[CC BY-NC-SA 3.0 IGO]: https://creativecommons.org/licenses/by-nc-sa/3.0/igo/
+
+
+### Assessed Contributions
+
+The file `assessed_contributions.parquet` contains data on assessed
+contributions determined by the WHO for different member states for the years
+2005, 2007, and 2008.
+
+Property            | Value
+---                 | ---
+Source              | WHO assessed contributions reports (A58, A60, A61)
+Years covered       | 2005, 2007-2008
+Unit of observation | one row per member state per year
+Currency            | US dollars, inflation-adjusted to 2024
+
+Columns in the file (data dictionary):
+
+| Column                                           | Type    | Description                                                             |
 | ---                                              | ---     | ---                                                                     |
 | `contributor`                                    | string  | WHO member state name, standardized to World Bank country names         |
 | `region`                                         | string  | World Bank geographic region                                            |
@@ -107,25 +115,23 @@ Currency: USD, inflation-adjusted to 2024
 
 ### Voluntary Contributions
 
-Description: This dataset, contained in `voluntary_contributions.parquet`,
-contains data on voluntary contributions to the WHO (World Health Organization)
-from member states for the years 2009-2023, except for 2013. These voluntary
-contributions are broken down into contributions earmarked for specific
-purposes and programs. In addition, this dataset includes the total assessed
-contributions for member states per year for years 2014-2022. For more
-information on how the WHO is funded, please visit [this page from the
-WHO][who-funding]. For more information on how countries are classified into
-income groups, please visit [this article from The World
-Bank][world-bank-income-groups]. Please note that this article provides
-information on country income classifications in the 2026 fiscal year, while
-this dataset uses the classifications from the 2025 fiscal year.
+The file `voluntary_contributions.parquet` contains data on voluntary
+contributions to the WHO (World Health Organization) from member states for the
+years 2009-2023, except for 2013. These voluntary contributions are broken down
+into contributions earmarked for specific purposes and programs. In addition,
+this data includes the total assessed contributions for member states per year
+for years 2014-2022.
 
-Source: WHO voluntary contributions reports (A68, A69, A70, A71, A72, A73, A74, A75, A76)
-Years covered: 2009-2012, 2014-2024
-Unit of observation: one row per member state per year
-Currency: USD, inflation-adjusted to 2024
+Property            | Value
+---                 | ---
+Source              | WHO voluntary contributions reports (A68, A69, A70, A71, A72, A73, A74, A75, A76)
+Years covered       | 2009-2012, 2014-2024
+Unit of observation | one row per member state per year
+Currency            | US dollars, inflation-adjusted to 2024
 
-| Variable                                                                       | Type    | Description                                                                                                            |
+Columns in the file (data dictionary):
+
+| Column                                                                         | Type    | Description                                                                                                            |
 | ---                                                                            | ---     | ---                                                                                                                    |
 | `contributor`                                                                  | string  | WHO member state name, standardized to World Bank country names                                                        |
 | `region`                                                                       | string  | World Bank geographic region                                                                                           |
@@ -146,33 +152,36 @@ Currency: USD, inflation-adjusted to 2024
 | `total_voluntary_contributions`                                                | float   | Total voluntary contributions across all categories                                                                    |
 | `assessed_contributions`                                                       | float   | Mandatory assessed contributions owed by WHO member states based on the UN scale of assessments                        |
 
+
 ### Methods
 
 Tabular data was extracted from WHO World Health Assembly PDF documents using a
 semi-automated pipeline. For each source document, pages containing
 contribution tables were converted to JPEG images at 300 DPI using pdftocairo
-26.02.0 (Poppler). The resulting images were then uploaded to Claude Sonnet 4.5
-(Anthropic), which extracted the tabular data and returned it as CSV strings.
-Extracted CSVs were manually reviewed and saved. 
+26.02.0 ([Poppler][]). The resulting images were then uploaded to Claude Sonnet
+4.5 ([Anthropic][]), which extracted the tabular data and returned it as CSV
+strings. Extracted CSVs were manually reviewed and saved. 
 
-Extracted data was cross-validated against a separate extraction of the same
-WHO voluntary contributions reports by Lauren Peritz, who utilized a Python
-pipeline based on the pdfplumber package.
+[Poppler]: https://poppler.freedesktop.org/
+[Anthropic]: https://www.anthropic.com/
+
+Extracted data was validated against a separate extraction of the same WHO
+voluntary contributions reports by Lauren Peritz, who used Claude Sonnet 4.5 to
+develop a Python pipeline based on the [pdfplumber][] package.
+
+[pdfplumber]: https://github.com/jsvine/pdfplumber
 
 Extracted data was then cleaned and standardized using a Python processing
 pipeline. Contributor names were standardized to World Bank country names using
-fuzzy string matching (RapidFuzz). World Bank region and income group
+fuzzy string matching ([RapidFuzz][]). World Bank region and income group
 classifications were merged in based on matched country names. All monetary
-values were inflation-adjusted to 2024 USD.
+values were inflation-adjusted to 2024 US dollars.
+
+[RapidFuzz]: https://rapidfuzz.github.io/RapidFuzz/
 
 ([back to top][top])
 
 
 ## Installation
-
-([back to top][top])
-
-
-## Contributing
 
 ([back to top][top])
