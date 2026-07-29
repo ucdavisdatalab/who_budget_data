@@ -28,18 +28,19 @@ Lauren Peritz and carried out by the [UC Davis DataLab][datalab].
 The directory structure for the project is:
 
 ```
-data/           Datasets
-figures/        Graphics and figures
-notebooks/      Notebooks (`.ipynb`, `.Rmd`, ...)
-src/            Python/Java/... (non-R) source code
-R/              R source code
-.gitattributes  Paths Git should give special treatment
-.gitignore      Paths Git should ignore
-LICENSE         License for the code
-LICENSE-DATA    License for the dataset
-README.md       This file
-pixi.lock       Exact description of Pixi environment (dependencies)
-pixi.toml       Project metadata file (including dependencies)
+data/               Datasets
+figures/            Graphics and figures
+notebooks/          Notebooks (`.ipynb`, `.Rmd`, ...)
+src/                Python/Java/... (non-R) source code
+R/                  R source code
+.gitattributes      Paths Git should give special treatment
+.gitignore          Paths Git should ignore
+CONTRIBUTING.md     Instructions for contributing to this project
+LICENSE             License for the code
+LICENSE-DATA        License for the dataset
+README.md           This file
+pixi.lock           Exact description of Pixi environment (dependencies)
+pixi.toml           Project metadata file (including dependencies)
 ```
 
 <!--
