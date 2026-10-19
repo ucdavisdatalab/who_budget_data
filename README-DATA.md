@@ -24,6 +24,11 @@ The dataset consists of two parts: assessed contributions and voluntary
 contributions. We provide data dictionaries for these two parts and a
 description of how they were extracted in the subsequent sections.
 
+These two parts are deliberately *not merged with each other* and have
+*different shapes* (voluntary contributions is long; assessed contributions is
+wide, matching its original shape). This was a deliberate restructuring
+decision on 2026-08-19.
+
 For more information on how the WHO is funded, please visit [this page from the
 WHO][who-funding]. For more information on how countries are classified into
 income groups, please visit [this article from The World
@@ -45,16 +50,16 @@ edition.
 
 ### Assessed Contributions
 
-The file `assessed_contributions.parquet` contains data on assessed
+The file `assessed_contributions.parquet`/`.rds` contains data on assessed
 contributions determined by the WHO for different member states for the years
-2005, 2007, and 2008.
+2005-2008.
 
 Property            | Value
 ---                 | ---
 Source              | WHO assessed contributions reports (A58, A60, A61)
-Years covered       | 2005, 2007-2008
-Unit of observation | one row per member state per year
-Currency            | US dollars, inflation-adjusted to 2024
+Years covered       | 2005-2008
+Unit of observation | One row per member state per year
+Currency            | US dollars, nominal (as reported)
 
 Columns in the file (data dictionary):
 
@@ -75,21 +80,79 @@ Columns in the file (data dictionary):
 | `balances_due_total`                             | integer | Sum of all outstanding balances across all periods                      |
 
 
+### Voluntary Contributions (long)
+
+The file `voluntary_contributions_long.parquet`/`.rds` contains data on
+voluntary contributions to the WHO (World Health Organization) from member
+states for the years 2008-2024 (2013 has totals only).
+
+This file is in long format, with one row per (contributor, year, funding
+category) combination, rather than one row per (contributor, year) combination
+with many category columns. See `build_long_format.py` for how this file was
+generated.
+
+Property            | Value
+---                 | ---
+Source              | WHO voluntary contributions reports (A68, A69, A70, A71, A72, A73, A74, A75, A76)
+Years covered       | 2008-2024 (2013 has totals only)
+Unit of observation | One row per member state per year per funding category
+Currency            | US dollars, nominal (as reported); except `USD_2024_adjusted` (see below)
+
+Columns in the file (data dictionary):
+
+Column              | Type    | Description
+---                 | ---     | ---
+`contributor`       | string  | Contributor name
+`region`            | string  | World Bank geographic region (blank for non-country contributors)
+`year`              | integer | Year the contribution applies to
+`income_group`      | string  | World Bank income classification (blank for non-country contributors)
+`file`              | string  | WHO's original published PDF the row was extracted from (e.g. `A72_INF5-en.pdf` for 2018) — not the intermediate `WHO_voluntary_contributions_YYYY.csv` this pipeline extracted from it. 2013 is the one exception: it comes from `who_revenue2013.csv`, a different (non-WHA-report) data source, so there's no PDF to name
+`category`          | string  | Which original wide-table column this row came from, e.g. `core_voluntary_contributions_account`, `total_voluntary_contributions`
+`category_type`     | string  | `component` (an additive line-item) or `summary` (the aggregate `total_voluntary_contributions`) — sum only `component` rows to avoid double-counting. Every contributor-year has exactly one `summary` row: the report's own stated total where one exists, otherwise derived as the sum of that contributor-year's components
+`USD_nominal`       | float   | As-reported dollar amount for that category, unadjusted
+`USD_2024_adjusted` | float   | `USD_nominal` multiplied by the year's inflation factor from `inflation_adjust2024.csv` (2024 rows use factor 1.0)
+
+The source for 2008 is `WHO_voluntary_contributions_2008.csv`, which is not
+included with this dataset. It uses a report structure unlike any other year:
+one main table
+(`voluntary_contributions_specified`/`voluntary_contributions_core`) plus nine
+separate fund-specific sections, each with their own contributor list and
+WHO-reported subtotal. Four of those nine sections map onto categories already
+used by later years (TDR, HRP, Stop TB Partnership, Water Supply and Sanitation
+Collaborative Council); the other five are 2008-only categories not present in
+any other year:
+
+* `stop_tb_partnership_global_drug_facility`
+* `who_framework_convention_on_tobacco_control`
+* `other_partnerships_2008`
+* `revolving_fund_for_teaching_and_laboratory_equipment`
+
+All ten sections' extracted sums were checked against WHO's own reported
+subtotal for that section and match exactly (main table: $972,931,392; grand
+total across all sections: $1,111,325,223).
+
+
 ### Voluntary Contributions
 
-The file `voluntary_contributions.parquet` contains data on voluntary
+The file `voluntary_contributions.parquet`/`.rds` contains data on voluntary
 contributions to the WHO (World Health Organization) from member states for the
 years 2009-2023, except for 2013. These voluntary contributions are broken down
 into contributions earmarked for specific purposes and programs. In addition,
 this data includes the total assessed contributions for member states per year
 for years 2014-2022.
 
+See [Voluntary Contributions (long)](#voluntary-contributions-long) above for
+another version with additional cleaning and reconciliation. The long-format
+table above additionally covers 2008 (not present in this file), sourced from a
+dedicated 2008 extraction with its own set of fund-specific categories not used
+in any other year.
+
 Property            | Value
 ---                 | ---
 Source              | WHO voluntary contributions reports (A68, A69, A70, A71, A72, A73, A74, A75, A76)
-Years covered       | 2009-2012, 2014-2024
-Unit of observation | one row per member state per year
-Currency            | US dollars, inflation-adjusted to 2024
+Years covered       | 2009-2024 (2013 has totals only)
+Unit of observation | One row per member state per year
+Currency            | US dollars, nominal (as reported)
 
 Columns in the file (data dictionary):
 
@@ -117,28 +180,36 @@ Columns in the file (data dictionary):
 
 ### Methods
 
-Tabular data was extracted from WHO World Health Assembly PDF documents using a
-semi-automated pipeline. For each source document, pages containing
-contribution tables were converted to JPEG images at 300 DPI using pdftocairo
-26.02.0 ([Poppler][]). The resulting images were then uploaded to Claude Sonnet
-4.5 ([Anthropic][]), which extracted the tabular data and returned it as CSV
-strings. Extracted CSVs were manually reviewed and saved. 
+Tabular data was originally extracted from WHO World Health Assembly PDF
+documents using a semi-automated pipeline. For each source document, pages
+containing contribution tables were converted to JPEG images at 300 DPI using
+pdftocairo 26.02.0 ([Poppler][]). The resulting images were then uploaded to
+Claude Sonnet 4.5 ([Anthropic][]), which extracted the tabular data and
+returned it as CSV strings. Extracted CSVs were manually reviewed and saved. 
 
 [Poppler]: https://poppler.freedesktop.org/
 [Anthropic]: https://www.anthropic.com/
 
-Extracted data was validated against a separate extraction of the same WHO
-voluntary contributions reports by Lauren Peritz, who used Claude Sonnet 4.5 to
-develop a Python pipeline based on the [pdfplumber][] package.
+Extracted data were also cleaned and standardized using a Python processing
+pipeline. Contributor names were standardized to World Bank country names using
+fuzzy string matching ([RapidFuzz][]). World Bank region and income group
+classifications were merged in based on matched country names.
+
+[RapidFuzz]: https://rapidfuzz.github.io/RapidFuzz/
+
+On 2026-08-18, we used Claude to generate a new *deterministic, model-free PDF
+extraction pipeline* based on the [pdfplumber][] package. This pipeline
+consists of the files:
 
 [pdfplumber]: https://github.com/jsvine/pdfplumber
 
-Extracted data was then cleaned and standardized using a Python processing
-pipeline. Contributor names were standardized to World Bank country names using
-fuzzy string matching ([RapidFuzz][]). World Bank region and income group
-classifications were merged in based on matched country names. All monetary
-values were inflation-adjusted to 2024 US dollars.
+* `build_long_format.py`
+*_`build_assessed_contributions.py`
 
-[RapidFuzz]: https://rapidfuzz.github.io/RapidFuzz/
+These were used to build the long-format voluntary contributions table
+described above. These are preferred over the original vision-based extraction
+wherever a source PDF/CSV is available, since it's exact/reproducible rather
+than model-dependent, and easier to debug and verify against the source PDF
+page-by-page. See `docs/history/` for a changelog with more details.
 
 ([back to top][top])
