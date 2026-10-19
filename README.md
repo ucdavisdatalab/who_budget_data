@@ -2,8 +2,7 @@
 
 [top]: #world-health-organization-budget-data
 
-_Authors: Joey Suen, Nick Ulle, Lauren Peritz_  
-_Maintainer: Nick Ulle <<naulle@ucdavis.edu>>_  
+_Authors: Lauren Peritz, Joey Suen_  
 
 This repository contains code to post-process data extracted from World Health
 Organization (WHO) Budget PDFs. The repository also contains code for some
@@ -17,8 +16,11 @@ initial exploratory analysis of the dataset.
 > The dataset is provided separately.
 
 The purpose of this project is to make historical data about voluntary
-contributions to the WHO more easily accessible. The project was proposed by
-Lauren Peritz and carried out by the [UC Davis DataLab][datalab].
+contributions to the WHO more easily accessible.
+
+This project was proposed and most of the work was completed by Lauren Peritz.
+Some initial investigation was also done by Joey Suen (with supervision from
+the [UC Davis DataLab][datalab]).
 
 [datalab]: https://datalab.ucdavis.edu/
 
