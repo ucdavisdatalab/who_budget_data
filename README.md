@@ -30,8 +30,6 @@ The directory structure for the project is:
 ```
 data/               Datasets
 docs/history/       Changelogs (from Claude) for the extraction pipeline
-figures/            Graphics and figures
-notebooks/          Notebooks (`.ipynb`, `.Rmd`, ...)
 src/                Python/Java/... (non-R) source code
 R/                  R source code
 .gitattributes      Paths Git should give special treatment
